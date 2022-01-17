@@ -1,6 +1,6 @@
 {
   "name": "turbo-boilerplate",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "private": true,
   "workspaces": {
     "packages": [
@@ -31,21 +31,52 @@
     "build": "turbo run build",
     "dev": "turbo run dev --no-cache --parallel --continue",
     "lint": "turbo run lint",
+    "format": "prettier --write .",
     "test": "turbo run test",
-    "clean": "yarn clean:turbo && yarn clean:watchman",
+    "release": "ts-node scripts/release.ts",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "clean": "run-s clean:turbo clean:watchman",
     "clean:turbo": "yarn turbo run clean && rm -rf node_modules",
-    "clean:watchman": "watchman watch-del-all && yarn cache clean"
+    "clean:watchman": "run-s watchman watch-del-all cache clean"
   },
   "devDependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/prompts": "^2.0.14",
+    "@types/semver": "^7.3.9",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.5.1",
+    "eslint": "^8.5.0",
+    "semver": "^7.3.5",
+    "conventional-changelog-cli": "^2.2.2",
+    "lint-staged": "^12.1.4",
+    "picocolors": "^1.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "~4.5.4",
+    "execa": "^5.1.1",
+    "prompts": "^2.4.2",
+    "simple-git-hooks": "^2.7.0",
     "turbo": "latest"
   },
   "engines": {
-    "node": ">=12",
-    "pnpm": ">=3"
+    "node": ">=12"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "commit-msg": "npx ts-node scripts/verifyCommit.ts $1"
+  },
+  "lint-staged": {
+    "*": [
+      "prettier --write --ignore-unknown"
+    ],
+    "packages/*/{src,types}/**/*.ts": [
+      "eslint --ext .ts"
+    ],
+    "packages/**/*.d.ts": [
+      "eslint --ext .ts"
+    ]
   },
   "turbo": {
-    "baseBranch": "origin/master",
+    "baseBranch": "origin/main",
     "pipeline": {
       "build": {
         "outputs": [
