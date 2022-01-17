@@ -15,7 +15,7 @@ const args = require("minimist")(process.argv.slice(2));
 const pkgDir = process.cwd();
 const pkgPath = path.resolve(pkgDir, "package.json");
 const pkg: { name: string; version: string } = require(pkgPath);
-const pkgName = pkg.name.replace(/^@vitejs\//, "");
+const pkgName = pkg.name.replace(/^@profile\//, "");
 const currentVersion = pkg.version;
 const isDryRun: boolean = args.dry;
 const skipBuild: boolean = args.skipBuild;
@@ -83,8 +83,7 @@ async function main(): Promise<void> {
     throw new Error(`invalid target version: ${targetVersion}`);
   }
 
-  const tag =
-    pkgName === "vite" ? `v${targetVersion}` : `${pkgName}@${targetVersion}`;
+  const tag = `${pkgName}@${targetVersion}`;
 
   if (targetVersion.includes("beta") && !args.tag) {
     const { tagBeta }: { tagBeta: boolean } = await prompts({
@@ -129,10 +128,10 @@ async function main(): Promise<void> {
     console.log("No changes to commit.");
   }
 
-  step("\nPublishing package...");
-  await publishPackage(targetVersion, runIfNotDry);
+  // step("\nPublishing package...");
+  // await publishPackage(targetVersion, runIfNotDry);
 
-  step("\nPushing to GitHub...");
+  step("\nPushing to GitLab...");
   await runIfNotDry("git", ["push", "origin", `refs/tags/${tag}`]);
   await runIfNotDry("git", ["push"]);
 
@@ -149,36 +148,36 @@ function updateVersion(version: string): void {
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 }
 
-async function publishPackage(
-  version: string,
-  runIfNotDry: RunFn | DryRunFn
-): Promise<void> {
-  const publicArgs = [
-    "publish",
-    "--no-git-tag-version",
-    "--new-version",
-    version,
-    "--access",
-    "public",
-  ];
-  if (args.tag) {
-    publicArgs.push(`--tag`, args.tag);
-  }
-  try {
-    // important: we still use Yarn 1 to publish since we rely on its specific
-    // behavior
-    await runIfNotDry("yarn", publicArgs, {
-      stdio: "pipe",
-    });
-    console.log(colors.green(`Successfully published ${pkgName}@${version}`));
-  } catch (e: any) {
-    if (e.stderr.match(/previously published/)) {
-      console.log(colors.red(`Skipping already published: ${pkgName}`));
-    } else {
-      throw e;
-    }
-  }
-}
+// async function publishPackage(
+//   version: string,
+//   runIfNotDry: RunFn | DryRunFn
+// ): Promise<void> {
+//   const publicArgs = [
+//     "publish",
+//     "--no-git-tag-version",
+//     "--new-version",
+//     version,
+//     "--access",
+//     "public",
+//   ];
+//   if (args.tag) {
+//     publicArgs.push(`--tag`, args.tag);
+//   }
+//   try {
+//     // important: we still use Yarn 1 to publish since we rely on its specific
+//     // behavior
+//     await runIfNotDry("yarn", publicArgs, {
+//       stdio: "pipe",
+//     });
+//     console.log(colors.green(`Successfully published ${pkgName}@${version}`));
+//   } catch (e: any) {
+//     if (e.stderr.match(/previously published/)) {
+//       console.log(colors.red(`Skipping already published: ${pkgName}`));
+//     } else {
+//       throw e;
+//     }
+//   }
+// }
 
 main().catch((err) => {
   console.error(err);
